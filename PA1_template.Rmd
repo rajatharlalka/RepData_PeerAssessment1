@@ -77,7 +77,22 @@ sum(is.na(MDataNA$steps))
 
 Now fill in all the missing values with mean for that particular day
 ``` {r echo = TRUE}
-MDataNA$steps[is.na(MDataNA$steps)] <- sapply(split(MData$steps,MData$date),mean)
+
+MDataMod <- MDataNA
+MDataMod[is.na(MDataMod)] <- 0
+
+MeanAgg <- aggregate(MDataMod$steps, by=list(MDataMod$date), FUN=mean)
+
+
+ j <- 1
+
+for (i in 1:61){
+     while(MeanAgg$Group.1[i]==MDataNA$date[j] && j <= 17568){
+         MDataNA$steps[j]=replace(MDataNA$steps[j],is.na(MDataNA$steps[j]),MeanAgg$x[i])
+         j <- j+1
+     }
+ }
+
 
 ```
 Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day.
@@ -103,3 +118,21 @@ sapply(split(MDataNA$steps, MDataNA$date), median)
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+```{r echo = TRUE}
+
+MDataNA$day <- weekdays(as.Date(MDataNA$date))
+
+
+for (i in 1:17568){
+if (MDataNA$day[i] == "Sunday" || MDataNA$day[i] == "Saturday")
+MDataNA$day[i] <- "Weekend"
+else
+MDataNA$day[i] <- "Weekday"
+}
+
+library(ggplot2)
+
+qplot(steps,interval,data=MDataNA, facets=.~day, type=1)
+
+```
